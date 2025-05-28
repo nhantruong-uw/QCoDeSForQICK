@@ -2,12 +2,7 @@
 import ctypes  # only for DLL-based instrument
 import sys
 import time
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from typing_extensions import (
-        Unpack,  # can be imported from typing if python >= 3.12
-    )
+from typing import Unpack
 
 import numpy as np
 
@@ -49,9 +44,14 @@ class ZynqRfsoc(VisaInstrument):
         self.cfg = qick.QickConfig(config_path)
         self.soc = qick.SocProxy(ip_addr, self.cfg)
 
+        # add a new parameter
+
         # add new functions for more operations as needed
 
-        def close(self):
-            """Properly close instrument connection."""
-            self.soc.close()
-            super().close()
+    def close(self):
+        """Properly close instrument connection."""
+        self.soc.close()
+        super().close()
+
+    def Experiment1D(self):
+        
