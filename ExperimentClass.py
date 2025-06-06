@@ -23,6 +23,11 @@ import qick
 # from qcodes.dataset.measurements import Measurement
 # from qcodes.dataset import initialise_or_create_database_at, load_or_create_experiment
 
+# for individual experiments
+
+NAME = ""
+IP_ADDR = ""
+
 # Xilinx ZYNQ RFSoC
 class ZynqRfsoc(VisaInstrument):
     """
@@ -36,8 +41,8 @@ class ZynqRfsoc(VisaInstrument):
     # as shown below for the default_terminator
     default_terminator = "\r"
 
-    def __init__(self, name: str, ip_addr: str, config_path: str, **kwargs: "Unpack[VisaInstrumentKWArgs]"):
-        super().__init__(name, address, **kwargs)
+    def __init__(self, config_path: str, name = NAME, ip_addr = IP_ADDR, **kwargs: "Unpack[VisaInstrumentKWArgs]"):
+        super().__init__(name, ip_addr, **kwargs)
         
         # initialize qick hardware
         # config_path is path to .json file of layout of hardware; add later
@@ -53,5 +58,13 @@ class ZynqRfsoc(VisaInstrument):
         self.soc.close()
         super().close()
 
-    def Experiment1D(self):
+    class Experiment1D:
+        def __init__(self):
+            print("Experiment1D")
+
+        def Ramsey(self):
+            print("Ramsey")
         
+    class Experiment2D:
+        def __init__(self):
+            print("Experiment2D")
