@@ -49,7 +49,6 @@ class ZynqRfsoc(VisaInstrument):
         # config_path is path to .json file of layout of hardware; add later
         self.cfg = qick.QickConfig(config_path)
         self.soc = qick.SocProxy(ip_addr, self.cfg)
-        self.prog = None
         self._enabled_params = {}
 
         # add new functions for more operations as needed
@@ -109,10 +108,10 @@ class ZynqRfsoc(VisaInstrument):
             self.prog = None
 
             # Register toggleable QCoDeS parameters from cfg
-            self._add_toggleable_parameter("relax_delay", unit="us", getter=lambda: self.cfg["relax_delay"])
-            self._add_toggleable_parameter("pulse_freq", unit="MHz", getter=lambda: self.cfg["pulse_freq"])
-            self._add_toggleable_parameter("res_ch", getter=lambda: self.cfg["res_ch"])
-            self._add_toggleable_parameter("ro_chs", getter=lambda: self.cfg["ro_chs"])
+            self.parent._add_toggleable_parameter("relax_delay", unit="us", getter=lambda: self.cfg["relax_delay"])
+            self.parent._add_toggleable_parameter("pulse_freq", unit="MHz", getter=lambda: self.cfg["pulse_freq"])
+            self.parent._add_toggleable_parameter("res_ch", getter=lambda: self.cfg["res_ch"])
+            self.parent._add_toggleable_parameter("ro_chs", getter=lambda: self.cfg["ro_chs"])
 
         # updates a requested param with requested new val if param exists
         def update_parameter(self, name, new_get=None, new_set=None):
