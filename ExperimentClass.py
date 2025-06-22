@@ -7,6 +7,7 @@ from typing import Unpack
 import numpy as np
 
 from qcodes import validators as vals
+from qcodes import Measurement
 from qcodes.instrument import (
     Instrument,
     InstrumentBaseKWArgs,
@@ -86,6 +87,14 @@ class ZynqRfsoc(VisaInstrument):
             self._enabled_params[name] = False
         else:
             raise KeyError(f"No such toggleable parameter '{name}'")
+        
+    def readout_data(self):
+        # Example: read the data buffers from all readout ADC channels
+        data = {}
+        for ch in self.cfg["ro_chs"]:
+            # This function call depends on your soc API:
+            data[ch] = self.soc.readout(ch)
+        return data
 
     def close(self):
         """Properly close instrument connection."""
@@ -105,6 +114,17 @@ class ZynqRfsoc(VisaInstrument):
             self._add_toggleable_parameter("res_ch", getter=lambda: self.cfg["res_ch"])
             self._add_toggleable_parameter("ro_chs", getter=lambda: self.cfg["ro_chs"])
 
+        # updates a requested param with requested new val if param exists
+        def update_parameter(self, name, new_get=None, new_set=None):
+            if name not in self.parent.parameters:
+                raise KeyError(f"Parameter '{name}' does not exist")
+            param = self.parent.parameters[name]
+            if new_get is not None:
+                param.get_cmd = new_get
+            if new_set is not None:
+                param.set_cmd = new_set
+
+        # initialize the experiment
         def initialize(self):
             cfg = self.cfg
             prog = qick.Program(self.soc, cfg)
@@ -136,7 +156,8 @@ class ZynqRfsoc(VisaInstrument):
             prog.synci(200)
             self.prog = prog
 
-        def body(self):
+    # measures the result from the experiment and store in the database
+        def measure(self):
             cfg = self.cfg
             if self.prog is None:
                 raise RuntimeError("Program not initialized")
@@ -153,4 +174,28 @@ class ZynqRfsoc(VisaInstrument):
                 raise RuntimeError("Program not initialized")
             compiled = self.soc.compile(self.prog)
             self.soc.load_program(compiled)
-            self.soc.run()
+            
+            # Start QCoDeS measurement context
+            with Measurement() as meas:
+                # Add parameters to dataset metadata
+                meas.register_parameter(self.parent.relax_delay)
+                meas.register_parameter(self.parent.pulse_freq)
+                meas.register_parameter(self.parent.res_ch)
+                meas.register_parameter(self.parent.ro_chs)
+
+                self.soc.run()
+
+                # Here, you'd collect data (e.g., from ADC)
+                # For example:
+                data = self.parent.readout_data()  # Implement this to get actual results
+                
+                # For demo, let's fake some data
+                data = 42
+
+                # Add result to dataset
+                meas.add_result(
+                    ("data", data),
+                    ("relax_delay", self.parent.relax_delay()),
+                    ("pulse_freq", self.parent.pulse_freq())
+                    # add more params if desired
+                )
