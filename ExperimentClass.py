@@ -187,12 +187,10 @@ class ZynqRfsoc(VisaInstrument):
                 # Here, you'd collect data (e.g., from ADC)
                 # For example:
                 data = self.parent.readout_data()  # Implement this to get actual results
-                
-                # For demo, let's fake some data
-                data = 42
 
                 # Add result to dataset
                 meas.add_result(
+                    ("exp", "SendReceivePulse"),
                     ("data", data),
                     ("relax_delay", self.parent.relax_delay()),
                     ("pulse_freq", self.parent.pulse_freq())
